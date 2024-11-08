@@ -1,7 +1,7 @@
 import pandas as pd
 
 def load_datasets():
-    """Load all datasets with their specific columns."""
+
     try:
         # Define columns to keep for each dataset
         columns_config = {
@@ -25,10 +25,6 @@ def load_datasets():
 
 
 def merge_and_sample_datasets(dfs, target_total=3738):
-    """
-    Merge all datasets and sample to desired number of rows,
-    keeping all positive churn cases.
-    """
     try:
         # Merge datasets
         merged_df = dfs['services']
@@ -76,7 +72,7 @@ def merge_and_sample_datasets(dfs, target_total=3738):
 
 
 def clean_and_transform_data(df):
-    """Clean the merged dataset and add derived features."""
+
     try:
         # Handle missing values
         numerical_cols = df.select_dtypes(include=['float', 'int']).columns

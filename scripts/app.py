@@ -30,7 +30,7 @@ def load_model():
     return model, scaler, numerical_columns, categorical_columns
 
 
-def create_binary_indicator(probability, threshold=0.5):
+def create_binary_indicator(probability, threshold=0.2):
     color = "green" if probability < threshold else "red"
     fig = go.Figure(go.Indicator(
         mode="number+delta",
@@ -223,7 +223,7 @@ elif app_mode == 'New Customer Prediction':
             churn_probability = churn_prob[1]
             churn_probability_percentage = round(churn_probability * 100, 2)
 
-            threshold = 0.3
+            threshold = 0.2
 
             churn_prediction = churn_prob[1] > threshold
             risk_category = "High Risk" if churn_prediction else "Low Risk"

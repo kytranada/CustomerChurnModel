@@ -13,11 +13,11 @@ def create_churn_analysis_charts(data):
             'Average Monthly Charges by Service',
             'Customer Tenure Distribution'
         ),
-        specs=[[{'type': 'pie'}, {'type': 'bar'}],
-               [{'type': 'bar'}, {'type': 'histogram'}]]
+        specs=[[{'type': 'pie'}, {'type': 'pie'}],
+               [{'type': 'scatter'}, {'type': 'histogram'}]]
     )
 
-    # 1. Churn Distribution Pie Chart
+    # 1. Churn Distribution Pie Chart (Remains the same)
     churn_dist = data['Churn Value'].value_counts()
     fig.add_trace(
         go.Pie(
@@ -29,31 +29,33 @@ def create_churn_analysis_charts(data):
         row=1, col=1
     )
 
-    # 2. Churn by Internet Service
-    churn_by_service = data.groupby('Internet Service')['Churn Value'].mean().sort_values(ascending=True)
+    # 2. Churn by Internet Service as Pie Chart
+    churn_by_service = data.groupby('Internet Service')['Churn Value'].mean()
     fig.add_trace(
-        go.Bar(
-            x=churn_by_service.index,
-            y=churn_by_service.values * 100,
-            marker_color='#3498db',
+        go.Pie(
+            labels=churn_by_service.index,
+            values=churn_by_service.values * 100,
+            marker_colors=['#3498db', '#9b59b6', '#f1c40f'],
             name='Churn Rate'
         ),
         row=1, col=2
     )
 
-    # 3. Average Monthly Charges by Service Type
-    avg_charges = data.groupby('Internet Service')['Monthly Charge'].mean().sort_values(ascending=True)
+    # 3. Average Monthly Charges by Service Type as Area Chart
+    avg_charges = data.groupby('Internet Service')['Monthly Charge'].mean().sort_values()
     fig.add_trace(
-        go.Bar(
+        go.Scatter(
             x=avg_charges.index,
             y=avg_charges.values,
-            marker_color='#9b59b6',
+            mode='lines',
+            fill='tozeroy',
+            line_color='#9b59b6',
             name='Avg Monthly Charge'
         ),
         row=2, col=1
     )
 
-    # 4. Customer Tenure Distribution
+    # 4. Customer Tenure Distribution (Remains the same)
     fig.add_trace(
         go.Histogram(
             x=data['Tenure in Months'],
@@ -67,21 +69,21 @@ def create_churn_analysis_charts(data):
     # Update layout
     fig.update_layout(
         height=800,
-        showlegend=False,
+        showlegend=True,
         title_text="Customer Churn Analysis Dashboard",
         title_x=0.5,
         title_font_size=24
     )
 
     # Update axes labels
-    fig.update_yaxes(title_text="Churn Rate (%)", row=1, col=2)
-    fig.update_yaxes(title_text="Average Monthly Charge ($)", row=2, col=1)
-    fig.update_xaxes(title_text="Internet Service Type", row=1, col=2)
+    # For pie charts, axes titles are not necessary
     fig.update_xaxes(title_text="Internet Service Type", row=2, col=1)
     fig.update_xaxes(title_text="Tenure (Months)", row=2, col=2)
+    fig.update_yaxes(title_text="Average Monthly Charge ($)", row=2, col=1)
     fig.update_yaxes(title_text="Count", row=2, col=2)
 
     return fig
+
 
 
 def create_demographic_analysis(data):
@@ -90,15 +92,15 @@ def create_demographic_analysis(data):
         rows=2, cols=2,
         subplot_titles=(
             'Age Distribution by Churn Status',
-            'Churn Rate by Gender',
+            'Churned Customers by Gender',
             'Churn Rate by Streaming Service',
             'Average Monthly Charges by Age Group'
         ),
-        specs=[[{'type': 'box'}, {'type': 'bar'}],
-               [{'type': 'bar'}, {'type': 'bar'}]]
+        specs=[[{'type': 'box'}, {'type': 'domain'}],
+               [{'type': 'bar'}, {'type': 'scatter'}]]
     )
 
-    # 1. Age Distribution by Churn Status
+    # 1. Age Distribution by Churn Status (Box Plot)
     fig.add_trace(
         go.Box(
             x=data[data['Churn Value'] == 0]['Age'],
@@ -116,36 +118,45 @@ def create_demographic_analysis(data):
         row=1, col=1
     )
 
-    # 2. Churn Rate by Gender
-    gender_churn = data.groupby('Gender')['Churn Value'].mean().sort_values(ascending=True)
+    # 2. Churned Customers by Gender (Pie Chart)
+    gender_churn_counts = data[data['Churn Value'] == 1]['Gender'].value_counts()
     fig.add_trace(
-        go.Bar(
-            x=gender_churn.index,
-            y=gender_churn.values * 100,
-            marker_color='#3498db'
+        go.Pie(
+            labels=gender_churn_counts.index,
+            values=gender_churn_counts.values,
+            marker_colors=['#3498db', '#e74c3c'],
+            name='Churned Customers by Gender'
         ),
         row=1, col=2
     )
 
-    # 3. Churn Rate by Streaming Service
-    streaming_churn = data.groupby('Streaming')['Churn Value'].mean().sort_values(ascending=True)
+    # 3. Churn Rate by Streaming Service (Horizontal Bar Chart)
+    streaming_churn = data.groupby('Streaming')['Churn Value'].mean().sort_values()
     fig.add_trace(
         go.Bar(
-            x=streaming_churn.index,
-            y=streaming_churn.values * 100,
+            x=streaming_churn.values * 100,
+            y=streaming_churn.index,
+            orientation='h',
             marker_color='#9b59b6'
         ),
         row=2, col=1
     )
 
-    # 4. Average Monthly Charges by Age Group
-    data['Age Group'] = pd.cut(data['Age'], bins=[0, 30, 45, 60, 100], labels=['18-30', '31-45', '46-60', '60+'])
-    age_charges = data.groupby('Age Group')['Monthly Charge'].mean()
+    # 4. Average Monthly Charges by Age Group (Line Chart)
+    data['Age Group'] = pd.cut(
+        data['Age'],
+        bins=[0, 30, 45, 60, 100],
+        labels=['18-30', '31-45', '46-60', '60+']
+    )
+    age_charges = data.groupby('Age Group')['Monthly Charge'].mean().reset_index()
     fig.add_trace(
-        go.Bar(
-            x=age_charges.index,
-            y=age_charges.values,
-            marker_color='#f1c40f'
+        go.Scatter(
+            x=age_charges['Age Group'],
+            y=age_charges['Monthly Charge'],
+            mode='lines+markers',
+            line=dict(color='#f1c40f'),
+            marker=dict(size=10),
+            name='Avg Monthly Charge'
         ),
         row=2, col=2
     )
@@ -153,20 +164,22 @@ def create_demographic_analysis(data):
     # Update layout
     fig.update_layout(
         height=800,
-        showlegend=True
+        showlegend=True,
+        title_text="Customer Demographics Analysis",
+        title_x=0.5,
+        title_font_size=24
     )
 
     # Update axes labels
     fig.update_xaxes(title_text="Age", row=1, col=1)
-    fig.update_xaxes(title_text="Gender", row=1, col=2)
-    fig.update_xaxes(title_text="Streaming Service", row=2, col=1)
+    fig.update_xaxes(title_text="Churn Rate (%)", row=2, col=1)
     fig.update_xaxes(title_text="Age Group", row=2, col=2)
 
-    fig.update_yaxes(title_text="Churn Rate (%)", row=1, col=2)
-    fig.update_yaxes(title_text="Churn Rate (%)", row=2, col=1)
+    fig.update_yaxes(title_text="Streaming Service", row=2, col=1)
     fig.update_yaxes(title_text="Average Monthly Charge ($)", row=2, col=2)
 
     return fig
+
 
 
 def get_churn_insights(data):
@@ -214,9 +227,6 @@ def create_churn_by_age_and_gender(data):
     return fig
 
 def create_churn_heatmap_by_region(data):
-    """
-    Create a heatmap visualization showing churn rates by region (state).
-    """
     # Calculate churn rates by state
     churn_by_state = data.groupby('State')['Churn Value'].mean().reset_index()
     churn_by_state['Churn Rate'] = (churn_by_state['Churn Value'] * 100).round(2)
@@ -240,7 +250,6 @@ def create_churn_heatmap_by_region(data):
     return fig
 
 def create_total_charges_vs_churn(data):
-
     # Create the scatter plot
     fig = go.Figure(data=go.Scatter(
         x=data['Total Charges'],
@@ -249,7 +258,7 @@ def create_total_charges_vs_churn(data):
         marker=dict(
             color=data['Churn Value'],
             colorscale='Viridis',
-            size=10
+            size=7
         )
     ))
 

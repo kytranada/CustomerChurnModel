@@ -24,7 +24,7 @@ class ChurnPredictor:
         self.feature_names = None  # Will store actual feature names after preprocessing
 
     def load_data(self, filepath='./data/processed/merged.parquet'):
-        """Load the processed dataset."""
+
         try:
             return pd.read_parquet(filepath)
         except Exception as e:
@@ -32,7 +32,7 @@ class ChurnPredictor:
             raise
 
     def encode_categoricals(self, X):
-        """Encode categorical variables and print category counts."""
+
         for col in self.categorical_columns:
             X[col] = X[col].astype('category')
             X[col] = X[col].cat.codes
@@ -40,14 +40,14 @@ class ChurnPredictor:
         return X
 
     def analyze_features(self, X):
-        """Analyze feature correlations."""
+
         numerical_corr = X[self.numerical_columns].corr()
         print("\nFeature Correlations:")
         print(numerical_corr)
         return numerical_corr
 
     def scale_features(self, X, is_training=True):
-        """Scale numerical features."""
+
         if is_training:
             X[self.numerical_columns] = self.scaler.fit_transform(X[self.numerical_columns])
         else:
@@ -55,7 +55,7 @@ class ChurnPredictor:
         return X
 
     def preprocess_data(self, df):
-        """Complete preprocessing pipeline."""
+
         # Print initial class distribution to verify balance
         print("\nClass distribution:")
         print(df[self.target_column].value_counts(normalize=True))
@@ -86,7 +86,7 @@ class ChurnPredictor:
         return X_train, X_test, y_train, y_test
 
     def get_model_params(self):
-        """Define model parameters for grid search."""
+
         return {
             'max_depth': [3, 4, 5],
             'learning_rate': [0.01, 0.1],
@@ -99,7 +99,7 @@ class ChurnPredictor:
         }
 
     def train(self, X_train, y_train):
-        """Train the model using GridSearchCV."""
+        #Train the model using GridSearchCV
         base_model = XGBClassifier(
             random_state=42,
             enable_categorical=True,
@@ -123,7 +123,7 @@ class ChurnPredictor:
         return self.model
 
     def print_feature_importance(self):
-        """Print feature importance scores."""
+
         if self.model is not None and self.feature_names is not None:
             feature_importance = pd.DataFrame({
                 'feature': self.feature_names,
@@ -133,7 +133,7 @@ class ChurnPredictor:
             print(feature_importance.sort_values('importance', ascending=False))
 
     def evaluate(self, X_test, y_test):
-        """Evaluate the model performance."""
+
         if self.model is None:
             raise ValueError("Model hasn't been trained yet!")
 
@@ -153,7 +153,7 @@ class ChurnPredictor:
         print(pd.DataFrame(y_pred_proba).describe())
 
     def save(self, model_dir='./model'):
-        """Save the model and associated components."""
+
         if self.model is None:
             raise ValueError("No model to save!")
 
