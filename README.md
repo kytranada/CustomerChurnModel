@@ -19,7 +19,7 @@
 
 ## 📈 Project Overview
 
-The **Telco Customer Churn Prediction** project aims to predict whether a customer will leave a telecommunications company (churn) based on various features such as usage patterns, demographics, and service details. By accurately predicting churn, the company can proactively address customer concerns, improve retention strategies, and enhance overall customer satisfaction.
+The **Customer Churn Analysis** project aims to predict whether a customer will leave a telecommunications company (churn) based on various features such as usage patterns, demographics, and service details. By accurately predicting churn, the company can proactively address customer concerns, improve retention strategies, and enhance overall customer satisfaction.
 
 ---
 
@@ -41,9 +41,6 @@ The **Telco Customer Churn Prediction** project aims to predict whether a custom
 - **Data Processing:** Pandas, NumPy
 - **Machine Learning:** Scikit-learn, XGBoost
 - **Visualization:** Plotly, Kepler.gl
-- **Model Serialization:** Joblib
-- **Version Control:** Git
-- **Environment Management:** (e.g., Virtualenv, Conda)
 
 ---
 
@@ -82,20 +79,11 @@ telco-churn-prediction/
 1. **Clone the Repository**
 
    ```bash
-   git clone https://github.com/yourusername/CustumerChurnModelgit
+   git clone https://github.com/yourusername/CustomerChurnModelgit
    cd CustumerChurnModel
    ```
 
-2. **Create a Virtual Environment**
-
-   It's recommended to use a virtual environment to manage dependencies.
-
-   ```bash
-   python3 -m venv venv
-   source venv/bin/activate  # On Windows: venv\Scripts\activate
-   ```
-
-3. **Install Dependencies**
+2. **Install Dependencies**
 
    ```bash
    pip install -r requirements.txt
@@ -107,7 +95,7 @@ telco-churn-prediction/
    pip install streamlit pandas numpy scikit-learn xgboost plotly keplergl streamlit-keplergl joblib
    ```
 
-4. **Prepare the Data**
+3. **Prepare the Data**
 
    Ensure that the raw data files are placed in the `./data/raw/` directory as follows:
 
@@ -118,7 +106,7 @@ telco-churn-prediction/
 
    _Note: Replace the placeholder data with your actual datasets._
 
-5. **Process the Data**
+4. **Process the Data**
 
    Run the data processing script to merge, clean, and save the processed data.
 
@@ -126,7 +114,7 @@ telco-churn-prediction/
    python scripts/data_processing.py
    ```
 
-6. **Train the Model**
+5. **Train the Model**
 
    Execute the model training script to build and save the churn prediction model.
 
@@ -134,7 +122,7 @@ telco-churn-prediction/
    python scripts/model_training.py
    ```
 
-7. **Run the Streamlit Application**
+6. **Run the Streamlit Application**
 
    Launch the web application to interact with the churn prediction system.
 
@@ -200,7 +188,7 @@ telco-churn-prediction/
 
 ### **Algorithm**
 
-- **XGBoost Classifier:** Selected for its performance and ability to handle complex datasets.
+- **XGBoost Classifier:** Used for its performance and ability to handle complex datasets.
 
 ### **Training Pipeline**
 
@@ -219,7 +207,7 @@ telco-churn-prediction/
 
 ### **Training Script**
 
-- Located at `scripts/model_training.py`
+- Located at `scripts/model.py`
 - Execute using:
 
   ```bash
