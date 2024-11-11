@@ -151,8 +151,7 @@ elif app_mode == 'Customer Churn Prediction':
         gender = st.selectbox("Gender", sorted(data['Gender'].unique()))
         age = st.number_input("Customer Age", min_value=0)
 
-    # New: Dynamic threshold input
-    threshold = st.slider("Set Churn Prediction Threshold", min_value=0.0, max_value=1.0, value=0.2)
+    default_threshold = 0.5
 
     if st.button("Predict Churn"):
         # Validate inputs
@@ -189,7 +188,8 @@ elif app_mode == 'Customer Churn Prediction':
             churn_probability = churn_prob[1]
             churn_probability_percentage = round(churn_probability * 100, 2)
 
-            churn_prediction = churn_prob[1] > threshold
+            # Use the default threshold for prediction
+            churn_prediction = churn_prob[1] > default_threshold
             risk_category = "High Risk" if churn_prediction else "Low Risk"
 
             # Center the prediction results
@@ -200,20 +200,6 @@ elif app_mode == 'Customer Churn Prediction':
                 st.warning("Customer is likely to leave")
             else:
                 st.info("Customer is likely to stay")
-
-            # Display risk factors based on feature importance
-            st.subheader("Key Factors")
-            factors = []
-            if tenure < 12:
-                factors.append("Short Tenure")
-            if internet_service == 'No':
-                factors.append("No Internet Service")
-            if monthly_charges > data['Monthly Charge'].mean():
-                factors.append("Above average monthly charges")
-            if factors:
-                st.warning("Risk Factors: " + ", ".join(factors))
-            else:
-                st.info("No significant risk factors identified")
             st.markdown("</div>", unsafe_allow_html=True)
 
         except ValueError as ve:
