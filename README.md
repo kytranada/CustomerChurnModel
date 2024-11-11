@@ -1,4 +1,4 @@
-# 📊 Telco Customer Churn Prediction
+# 📊Customer Churn Analysis
 
 ![Project Banner](/photo.png)
 
