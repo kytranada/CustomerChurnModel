@@ -44,36 +44,6 @@ The **Customer Churn Analysis** project aims to predict whether a customer will 
 
 ---
 
-## 📁 Project Structure
-
-```
-telco-churn-prediction/
-├── data/
-│   ├── raw/
-│   │   ├── services.xlsx
-│   │   ├── demographics.xlsx
-│   │   ├── location.xlsx
-│   │   └── status.xlsx
-│   └── processed/
-│       └── merged.parquet
-├── model/
-│   ├── churn_model.pkl
-│   ├── scaler.pkl
-│   └── columns.pkl
-├── visualizations/
-│   └── __init__.py
-├── scripts/
-│   ├── data_processing.py
-│   └── model_training.py
-├── app/
-│   └── streamlit_app.py
-├── README.md
-├── requirements.txt
-└── LICENSE
-```
-
----
-
 ## 🚀 Installation
 
 1. **Clone the Repository**
