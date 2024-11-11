@@ -4,185 +4,174 @@ from sklearn.preprocessing import StandardScaler
 from xgboost import XGBClassifier
 from sklearn.metrics import classification_report, confusion_matrix, accuracy_score
 import joblib
+import os
 
+# Define columns
+numerical_columns = [
+    'Tenure in Months', 'Monthly Charge', 'Total Charges', 'Age'
+]
+categorical_columns = [
+    'Phone Service', 'Internet Service', 'Streaming', 'Gender'
+]
+target_column = 'Churn Value'
+id_column = 'Customer ID'
+scaler = StandardScaler()
 
-class ChurnPredictor:
-    def __init__(self):
-        # Define columns
-        self.numerical_columns = [
-            'Tenure in Months', 'Monthly Charge', 'Total Charges', 'Age'
-        ]
-        self.categorical_columns = [
-            'Phone Service', 'Internet Service', 'Streaming', 'Gender'
-        ]
-        self.target_column = 'Churn Value'
-        self.id_column = 'Customer ID'
-        self.scaler = StandardScaler()
-        self.model = None
-        self.feature_names = None  # Will store actual feature names after preprocessing
+def load_data(filepath='./data/processed/merged.parquet'):
+    """Load data from a parquet file."""
+    try:
+        return pd.read_parquet(filepath)
+    except Exception as e:
+        print(f"Error loading data: {str(e)}")
+        raise
 
-    # Data Loading
-    def load_data(self, filepath='./data/processed/merged.parquet'):
-        try:
-            return pd.read_parquet(filepath)
-        except Exception as e:
-            print(f"Error loading data: {str(e)}")
-            raise
+def encode_categoricals(X):
+    """Encode categorical columns."""
+    for col in categorical_columns:
+        X[col] = X[col].astype('category')
+        X[col] = X[col].cat.codes
+        print(f"{col} has {len(X[col].unique())} unique categories")
+    return X
 
-    # Data Preprocessing
-    def encode_categoricals(self, X):
-        for col in self.categorical_columns:
-            X[col] = X[col].astype('category')
-            X[col] = X[col].cat.codes
-            print(f"{col} has {len(X[col].unique())} unique categories")
-        return X
+def analyze_features(X):
+    """Analyze features and print correlations."""
+    numerical_corr = X[numerical_columns].corr()
+    print("\nFeature Correlations:")
+    print(numerical_corr)
+    return numerical_corr
 
-    def analyze_features(self, X):
-        numerical_corr = X[self.numerical_columns].corr()
-        print("\nFeature Correlations:")
-        print(numerical_corr)
-        return numerical_corr
+def scale_features(X, is_training=True):
+    """Scale numerical features."""
+    if is_training:
+        X[numerical_columns] = scaler.fit_transform(X[numerical_columns])
+    else:
+        X[numerical_columns] = scaler.transform(X[numerical_columns])
+    return X
 
-    def scale_features(self, X, is_training=True):
-        if is_training:
-            X[self.numerical_columns] = self.scaler.fit_transform(X[self.numerical_columns])
-        else:
-            X[self.numerical_columns] = self.scaler.transform(X[self.numerical_columns])
-        return X
+def preprocess_data(df):
+    """Preprocess the input DataFrame."""
+    # Print initial class distribution to verify balance
+    print("\nClass distribution:")
+    print(df[target_column].value_counts(normalize=True))
 
-    def preprocess_data(self, df):
-        # Print initial class distribution to verify balance
-        print("\nClass distribution:")
-        print(df[self.target_column].value_counts(normalize=True))
+    # Drop excluded columns
+    df = df.drop(columns=['Churn Reason', 'Churn Category', 'City', 'State', 'Zip Code', 'Latitude', 'Longitude'])
 
-        # Drop excluded columns
-        df = df.drop(columns=['Churn Reason', 'Churn Category', 'City', 'State', 'Zip Code', 'Latitude', 'Longitude'])
+    # Split features and target
+    X = df.drop(columns=[target_column, id_column])
+    y = df[target_column]
 
-        # Split features and target
-        X = df.drop(columns=[self.target_column, self.id_column])
-        y = df[self.target_column]
+    # Process features
+    X = encode_categoricals(X)
+    analyze_features(X)
+    X = scale_features(X)
 
-        # Store feature names in sorted order
-        self.feature_names = sorted(X.columns.tolist())
+    # Split the data with stratification to maintain balance
+    X_train, X_test, y_train, y_test = train_test_split(
+        X, y, test_size=0.2, random_state=42, stratify=y
+    )
 
-        # Process features
-        X = self.encode_categoricals(X)
-        self.analyze_features(X)
-        X = self.scale_features(X)
+    return X_train, X_test, y_train, y_test
 
-        # Ensure columns are in the same order as feature_names
-        X = X[self.feature_names]
+def get_model_params():
+    """Get parameters for the model."""
+    return {
+        'max_depth': [3, 4, 5],
+        'learning_rate': [0.01, 0.1],
+        'n_estimators': [100, 200],
+        'min_child_weight': [1, 3],
+        'gamma': [0, 0.1],
+        'subsample': [0.8, 0.9],
+        'colsample_bytree': [0.8, 0.9],
+        'scale_pos_weight': [1]
+    }
 
-        # Split the data with stratification to maintain balance
-        X_train, X_test, y_train, y_test = train_test_split(
-            X, y, test_size=0.2, random_state=42, stratify=y
-        )
+# Training the model with GridSearchCV
+def train(X_train, y_train):
+    base_model = XGBClassifier(
+        random_state=42,
+        enable_categorical=True,
+        tree_method='hist'
+    )
 
-        return X_train, X_test, y_train, y_test
+    grid_search = GridSearchCV(
+        estimator=base_model,
+        param_grid=get_model_params(),
+        cv=StratifiedKFold(n_splits=4),
+        scoring='f1',
+        n_jobs=-1,
+        verbose=1
+    )
 
-    # Model Training
-    def get_model_params(self):
-        return {
-            'max_depth': [3, 4, 5],
-            'learning_rate': [0.01, 0.1],
-            'n_estimators': [100, 200],
-            'min_child_weight': [1, 3],
-            'gamma': [0, 0.1],
-            'subsample': [0.8, 0.9],
-            'colsample_bytree': [0.8, 0.9],
-            'scale_pos_weight': [1]
-        }
+    grid_search.fit(X_train, y_train)
+    model = grid_search.best_estimator_
 
-    def train(self, X_train, y_train):
-        # Train the model using GridSearchCV
-        base_model = XGBClassifier(
-            random_state=42,
-            enable_categorical=True,
-            tree_method='hist'
-        )
+    # Print feature importance
+    print_feature_importance(model)
+    return model
 
-        grid_search = GridSearchCV(
-            estimator=base_model,
-            param_grid=self.get_model_params(),
-            cv=StratifiedKFold(n_splits=4),
-            scoring='f1',
-            n_jobs=-1,
-            verbose=1
-        )
+def print_feature_importance(model):
+    """Print feature importance of the trained model."""
+    if model is not None:
+        feature_importance = pd.DataFrame({
+            'feature': numerical_columns + categorical_columns,
+            'importance': model.feature_importances_
+        })
+        print("\nFeature Importances:")
+        sorted_importance = feature_importance.sort_values('importance', ascending=False)
+        print(sorted_importance)
+        return sorted_importance
+    
+def evaluate(model, X_test, y_test):
+    """Evaluate the model using the test data."""
+    if model is None:
+        raise ValueError("Model hasn't been trained yet!")
 
-        grid_search.fit(X_train, y_train)
-        self.model = grid_search.best_estimator_
+    y_pred = model.predict(X_test)
+    y_pred_proba = model.predict_proba(X_test)
 
-        # Print feature importance
-        self.print_feature_importance()
-        return self.model
+    # Print various metrics
+    print("\nModel Performance Metrics:")
+    print(f"Accuracy: {accuracy_score(y_test, y_pred):.4f}")
+    print("\nClassification Report:")
+    print(classification_report(y_test, y_pred))
+    print("\nConfusion Matrix:")
+    print(confusion_matrix(y_test, y_pred))
+    print("\nPrediction Distribution:")
+    print(pd.Series(y_pred).value_counts(normalize=True))
+    print("\nProbability Distribution Statistics:")
+    print(pd.DataFrame(y_pred_proba).describe())
 
-    # Feature Importance
-    def print_feature_importance(self):
-        if self.model is not None and self.feature_names is not None:
-            feature_importance = pd.DataFrame({
-                'feature': self.feature_names,
-                'importance': self.model.feature_importances_
-            })
-            print("\nFeature Importances:")
-            print(feature_importance.sort_values('importance', ascending=False))
+def save(model, model_dir='./model'):
+    """Save the trained model and scaler."""
+    if model is None:
+        raise ValueError("No model to save!")
 
-    # Model Evaluation
-    def evaluate(self, X_test, y_test):
-        if self.model is None:
-            raise ValueError("Model hasn't been trained yet!")
+    # Create model directory if it doesn't exist
+    os.makedirs(model_dir, exist_ok=True)
 
-        y_pred = self.model.predict(X_test)
-        y_pred_proba = self.model.predict_proba(X_test)
+    # Save components
+    joblib.dump(model, f'{model_dir}/churn_model.pkl')
+    joblib.dump(scaler, f'{model_dir}/scaler.pkl')
+    joblib.dump((numerical_columns, categorical_columns), f'{model_dir}/columns.pkl')
+    print(f"Model and components saved to {model_dir}")
 
-        # Print various metrics
-        print("\nModel Performance Metrics:")
-        print(f"Accuracy: {accuracy_score(y_test, y_pred):.4f}")
-        print("\nClassification Report:")
-        print(classification_report(y_test, y_pred))
-        print("\nConfusion Matrix:")
-        print(confusion_matrix(y_test, y_pred))
-        print("\nPrediction Distribution:")
-        print(pd.Series(y_pred).value_counts(normalize=True))
-        print("\nProbability Distribution Statistics:")
-        print(pd.DataFrame(y_pred_proba).describe())
-
-    # Save Model
-    def save(self, model_dir='./model'):
-        if self.model is None:
-            raise ValueError("No model to save!")
-
-        # Create model directory if it doesn't exist
-        import os
-        os.makedirs(model_dir, exist_ok=True)
-
-        # Save components
-        joblib.dump(self.model, f'{model_dir}/churn_model.pkl')
-        joblib.dump(self.scaler, f'{model_dir}/scaler.pkl')
-        joblib.dump((self.numerical_columns, self.categorical_columns),
-                    f'{model_dir}/columns.pkl')
-        print(f"Model and components saved to {model_dir}")
-
-# Main function to run the predictor
 def main():
-    # Initialize predictor
-    predictor = ChurnPredictor()
-
+    """Main function to run the predictor."""
     # Load data
-    df = predictor.load_data()
+    df = load_data()
 
     # Preprocess data
-    X_train, X_test, y_train, y_test = predictor.preprocess_data(df)
+    X_train, X_test, y_train, y_test = preprocess_data(df)
 
     # Train model
-    predictor.train(X_train, y_train)
+    model = train(X_train, y_train)
 
     # Evaluate model
-    predictor.evaluate(X_test, y_test)
+    evaluate(model, X_test, y_test)
 
     # Save model
-    predictor.save()
-
+    save(model)
 
 if __name__ == "__main__":
     main()

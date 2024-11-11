@@ -113,8 +113,8 @@ def display_geospatial_insights(data):
         st.warning("The dataset does not contain geospatial columns.")
 
 
+# Predict customer churn based on user input
 def predict_customer_churn(model, scaler, numerical_columns, categorical_columns, data):
-    """Predict customer churn based on user input."""
     st.markdown("<h2 style='text-align: center;'>🔮 Predict Customer Churn</h2>", unsafe_allow_html=True)
 
     # Input fields for customer data
@@ -181,12 +181,22 @@ def predict_customer_churn(model, scaler, numerical_columns, categorical_columns
             # Display key factors influencing the prediction
             st.subheader("Key Factors")
             factors = []
-            if tenure < 12:
-                factors.append("Short Tenure")
-            if internet_service == 'No':
-                factors.append("No Internet Service")
-            if monthly_charges > data['Monthly Charge'].mean():
-                factors.append("Above average monthly charges")
+            feature_importance = model.feature_importances_
+            important_features = sorted(zip(numerical_columns + categorical_columns, feature_importance), key=lambda x: x[1], reverse=True)
+
+            # Display the top 3 important features
+            for feature, importance in important_features[:3]:
+                if feature == 'Tenure in Months' and tenure < 12:
+                    factors.append("Short Tenure")
+                if feature == 'Internet Service' and internet_service == 'No':
+                    factors.append("No Internet Service")
+                if feature == 'Monthly Charge' and monthly_charges > data['Monthly Charge'].mean():
+                    factors.append("Above average monthly charges")
+                if feature == 'Total Charges' and total_charges > data['Total Charges'].mean():
+                    factors.append("Above average total charges")
+                if feature == 'Phone Service' and phone_service == 'No':
+                    factors.append("No Phone Service")
+
             if factors:
                 st.warning("Risk Factors: " + ", ".join(factors))
             else:
