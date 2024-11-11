@@ -25,12 +25,24 @@ The **Customer Churn Analysis** project aims to predict whether a customer will 
 
 ## 🔍 Features
 
-- **View Consolidated Dataset:** Explore the entire dataset with interactive metrics and visualizations.
-- **Geospatial Insights:** Visualize customer distribution and churn patterns on an interactive map using Kepler.gl.
-- **New Customer Prediction:** Input new customer data to predict the likelihood of churn with visual feedback.
-- **Comprehensive Data Processing:** Robust data loading, cleaning, and transformation pipeline ensuring high-quality inputs for modeling.
-- **Model Training & Evaluation:** Utilize XGBoost with hyperparameter tuning to build an accurate churn prediction model.
-- **Interactive Visualizations:** Leverage Plotly for dynamic charts and insights into churn factors.
+- **View Consolidated Dataset:**
+
+  - Explore the entire dataset with easy-to-understand metrics and visualizations.
+
+- **Geospatial Insights:**
+
+  - See where customers are located and how churn patterns look on an interactive map.
+
+- **New Customer Prediction:**
+
+  - Enter details about new customers to predict if they might leave, with helpful visual feedback.
+
+- **Comprehensive Data Processing:**
+
+  - A strong process for loading, cleaning, and transforming data to ensure high-quality inputs for modeling.
+
+- **Model Training & Evaluation:**
+  - Use XGBoost, a powerful tool, to build an accurate model that predicts customer churn.
 
 ---
 
@@ -40,7 +52,7 @@ The **Customer Churn Analysis** project aims to predict whether a customer will 
 - **Web Framework:** Streamlit
 - **Data Processing:** Pandas, NumPy
 - **Machine Learning:** Scikit-learn, XGBoost
-- **Visualization:** Plotly, Kepler.gl
+- **Visualization:** Kepler.gl
 
 ---
 
@@ -106,23 +118,23 @@ The **Customer Churn Analysis** project aims to predict whether a customer will 
 
 ## 💡 Usage
 
-### **1. Viewing the Dataset**
+### **1. Predicting New Customer Churn**
 
-- Navigate to the **View Dataset** section.
-- Explore key metrics like total customers, average tenure, and monthly charges.
-- Utilize the tabs to delve into churn analysis, demographic insights, or view the raw data.
+- Go to the **New Customer Prediction** section.
+- Input relevant customer details such as tenure, monthly charges, services subscribed, and demographics.
+- Click on **Predict Churn** to receive a probability score and risk assessment.
+- Visual indicators and key risk factors will help interpret the prediction.
 
 ### **2. Geospatial Insights**
 
 - Access the **Geospatial Insights** section to visualize customer locations and churn patterns on an interactive map.
 - Understand regional trends and identify hotspots of customer churn.
 
-### **3. Predicting New Customer Churn**
+### **3. Viewing the Dataset**
 
-- Go to the **New Customer Prediction** section.
-- Input relevant customer details such as tenure, monthly charges, services subscribed, and demographics.
-- Click on **Predict Churn** to receive a probability score and risk assessment.
-- Visual indicators and key risk factors will help interpret the prediction.
+- Navigate to the **View Dataset** section.
+- Explore key metrics like total customers, average tenure, and monthly charges.
+- Utilize the tabs to delve into churn analysis, demographic insights, or view the raw data.
 
 ---
 
@@ -162,18 +174,29 @@ The **Customer Churn Analysis** project aims to predict whether a customer will 
 
 ### **Training Pipeline**
 
-1. **Data Loading:** Processed data is loaded from `merged.parquet`.
-2. **Preprocessing:**
-   - Categorical variables are encoded.
-   - Numerical features are scaled using `StandardScaler`.
-   - Features are split into training and testing sets with stratification to maintain class balance.
-3. **Hyperparameter Tuning:**
-   - Utilizes `GridSearchCV` with `StratifiedKFold` for cross-validation.
-   - Parameters such as `max_depth`, `learning_rate`, `n_estimators`, and others are tuned to optimize the F1 score.
-4. **Evaluation:**
-   - Metrics like Accuracy, Classification Report, Confusion Matrix, and Probability Distributions are analyzed.
-5. **Model Saving:**
-   - The best model, scaler, and column information are serialized using `joblib` and saved in the `./model/` directory.
+1. **Load Data:**
+
+   - We start by loading the cleaned data from a file called `merged.parquet`.
+
+2. **Prepare Data:**
+
+   - Convert categories (like gender or service type) into numbers so the model can understand them.
+   - Scale numerical values (like charges) to ensure they are on a similar range.
+
+3. **Split Data:**
+
+   - Divide the data into two parts: one for training the model and one for testing how well it works.
+
+4. **Tune Model Settings:**
+
+   - Adjust settings (how deep the model can go) to find the best version of the model that predicts churn accurately.
+
+5. **Evaluate Model:**
+
+   - Check how well the model performs using various metrics (like accuracy) to see if it’s making good predictions.
+
+6. **Save Model:**
+   - Save the best version of the model and its settings so we can use it later without retraining.
 
 ### **Training Script**
 
@@ -199,7 +222,7 @@ The **Customer Churn Analysis** project aims to predict whether a customer will 
 
 ### **Features:**
 
-1. **View Dataset:**
+1. **Dataset:**
 
    - Displays key metrics and interactive visualizations.
    - Tabs for churn analysis, demographics, and raw data exploration.
@@ -211,11 +234,6 @@ The **Customer Churn Analysis** project aims to predict whether a customer will 
 3. **New Customer Prediction:**
    - Input form for new customer details.
    - Predicts churn probability with visual indicators and risk factors.
-
-### **Visualization Modules**
-
-- Located in the `visualizations/` directory.
-- Contains functions to create Plotly charts and other visual elements.
 
 ---
 
