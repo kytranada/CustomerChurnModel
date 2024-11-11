@@ -50,7 +50,7 @@ The **Customer Churn Analysis** project aims to predict whether a customer will 
 
 - **Programming Languages:** Python
 - **Web Framework:** Streamlit
-- **Data Processing:** Pandas, NumPy
+- **Data Processing:** Pandas, Joblib
 - **Machine Learning:** Scikit-learn, XGBoost
 - **Visualization:** Kepler.gl
 
