@@ -1,6 +1,6 @@
 import streamlit as st
 import pandas as pd
-import keplergl as kp
+from keplergl import KeplerGl
 from streamlit_keplergl import keplergl_static
 import joblib
 
@@ -121,7 +121,7 @@ elif app_mode == 'Geospatial Insights':
                 }
             }
         }
-        kepler_map = kp.KeplerGl(height=800, config=kepler_config)
+        kepler_map = KeplerGl(height=800, config=kepler_config)
         kepler_map.add_data(data, name='customer_data')
         keplergl_static(kepler_map)
     else:

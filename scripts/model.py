@@ -1,5 +1,4 @@
 import pandas as pd
-import numpy as np
 from sklearn.model_selection import train_test_split, GridSearchCV, StratifiedKFold
 from sklearn.preprocessing import StandardScaler
 from xgboost import XGBClassifier
@@ -9,13 +8,12 @@ import joblib
 
 class ChurnPredictor:
     def __init__(self):
+        # Define columns
         self.numerical_columns = [
-            'Tenure in Months', 'Monthly Charge', 'Total Charges',
-            'Age'
+            'Tenure in Months', 'Monthly Charge', 'Total Charges', 'Age'
         ]
         self.categorical_columns = [
-            'Phone Service', 'Internet Service', 'Streaming',
-            'Gender'
+            'Phone Service', 'Internet Service', 'Streaming', 'Gender'
         ]
         self.target_column = 'Churn Value'
         self.id_column = 'Customer ID'
@@ -23,16 +21,16 @@ class ChurnPredictor:
         self.model = None
         self.feature_names = None  # Will store actual feature names after preprocessing
 
+    # Data Loading
     def load_data(self, filepath='./data/processed/merged.parquet'):
-
         try:
             return pd.read_parquet(filepath)
         except Exception as e:
             print(f"Error loading data: {str(e)}")
             raise
 
+    # Data Preprocessing
     def encode_categoricals(self, X):
-
         for col in self.categorical_columns:
             X[col] = X[col].astype('category')
             X[col] = X[col].cat.codes
@@ -40,14 +38,12 @@ class ChurnPredictor:
         return X
 
     def analyze_features(self, X):
-
         numerical_corr = X[self.numerical_columns].corr()
         print("\nFeature Correlations:")
         print(numerical_corr)
         return numerical_corr
 
     def scale_features(self, X, is_training=True):
-
         if is_training:
             X[self.numerical_columns] = self.scaler.fit_transform(X[self.numerical_columns])
         else:
@@ -55,7 +51,6 @@ class ChurnPredictor:
         return X
 
     def preprocess_data(self, df):
-
         # Print initial class distribution to verify balance
         print("\nClass distribution:")
         print(df[self.target_column].value_counts(normalize=True))
@@ -85,8 +80,8 @@ class ChurnPredictor:
 
         return X_train, X_test, y_train, y_test
 
+    # Model Training
     def get_model_params(self):
-
         return {
             'max_depth': [3, 4, 5],
             'learning_rate': [0.01, 0.1],
@@ -99,7 +94,7 @@ class ChurnPredictor:
         }
 
     def train(self, X_train, y_train):
-        #Train the model using GridSearchCV
+        # Train the model using GridSearchCV
         base_model = XGBClassifier(
             random_state=42,
             enable_categorical=True,
@@ -122,8 +117,8 @@ class ChurnPredictor:
         self.print_feature_importance()
         return self.model
 
+    # Feature Importance
     def print_feature_importance(self):
-
         if self.model is not None and self.feature_names is not None:
             feature_importance = pd.DataFrame({
                 'feature': self.feature_names,
@@ -132,8 +127,8 @@ class ChurnPredictor:
             print("\nFeature Importances:")
             print(feature_importance.sort_values('importance', ascending=False))
 
+    # Model Evaluation
     def evaluate(self, X_test, y_test):
-
         if self.model is None:
             raise ValueError("Model hasn't been trained yet!")
 
@@ -152,8 +147,8 @@ class ChurnPredictor:
         print("\nProbability Distribution Statistics:")
         print(pd.DataFrame(y_pred_proba).describe())
 
+    # Save Model
     def save(self, model_dir='./model'):
-
         if self.model is None:
             raise ValueError("No model to save!")
 
@@ -168,6 +163,7 @@ class ChurnPredictor:
                     f'{model_dir}/columns.pkl')
         print(f"Model and components saved to {model_dir}")
 
+# Main function to run the predictor
 def main():
     # Initialize predictor
     predictor = ChurnPredictor()
