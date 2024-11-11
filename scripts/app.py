@@ -4,15 +4,6 @@ from keplergl import KeplerGl
 from streamlit_keplergl import keplergl_static
 import joblib
 
-st.set_page_config(layout="wide", page_title="Customer Churn Analysis", page_icon="📊")
-
-# Title and Sidebar Setup
-st.markdown("<h1 style='text-align: center; color: #ff6347;'>Customer Churn Analysis </h1>",
-            unsafe_allow_html=True)
-st.sidebar.title("Navigation")
-app_mode = st.sidebar.radio("Select Step", [ 'Customer Churn Prediction', 'Geospatial Insights', 'View Dataset'])
-
-
 # Load consolidated data
 @st.cache_data
 def load_data() -> pd.DataFrame:
@@ -31,9 +22,8 @@ def load_model() -> tuple:
         st.error("Model files not found. Please check the paths.")
         raise e
 
-
 def prepare_prediction_data(input_data, numerical_columns, categorical_columns, scaler, feature_names):
-
+    """Prepare the input data for prediction."""
     # Create DataFrame with the correct column order
     df = pd.DataFrame(input_data, index=[0])
     df = df[feature_names]
@@ -48,11 +38,9 @@ def prepare_prediction_data(input_data, numerical_columns, categorical_columns, 
 
     return df
 
-# View Dataset Section
-if app_mode == 'View Dataset':
-    st.markdown("<h2 style='text-align: center;'>📊 Dataset</h2>", unsafe_allow_html=True)
 
-    data = load_data()
+def display_dataset(data):
+    st.markdown("<h2 style='text-align: center;'>📊 Dataset</h2>", unsafe_allow_html=True)
 
     # Add data statistics
     col1, col2 = st.columns(2)
@@ -77,13 +65,10 @@ if app_mode == 'View Dataset':
     # Display the dataset
     st.dataframe(data, height=600)
 
-# Geospatial Insights Section
-elif app_mode == 'Geospatial Insights':
+def display_geospatial_insights(data):
     st.markdown("<h2 style='text-align: center;'>🟠 Geospatial Customer Data Insights </h2>", unsafe_allow_html=True)
 
-    data = load_data()
     if 'Latitude' in data.columns and 'Longitude' in data.columns:
-
         kepler_config = {
             "version": "v1",
             "config": {
@@ -127,17 +112,10 @@ elif app_mode == 'Geospatial Insights':
     else:
         st.warning("The dataset does not contain geospatial columns.")
 
-# Customer Prediction Section
-elif app_mode == 'Customer Churn Prediction':
+
+def predict_customer_churn(model, scaler, numerical_columns, categorical_columns, data):
+    """Predict customer churn based on user input."""
     st.markdown("<h2 style='text-align: center;'>🔮 Predict Customer Churn</h2>", unsafe_allow_html=True)
-
-    try:
-        model, scaler, numerical_columns, categorical_columns = load_model()
-    except FileNotFoundError:
-        st.error("Please ensure the model and associated files have been trained and saved.")
-        st.stop()
-
-    data = load_data()
 
     # Input fields for customer data
     col1, col2 = st.columns(2)
@@ -162,12 +140,10 @@ elif app_mode == 'Customer Churn Prediction':
 
         # Prepare input data dictionary
         input_data = {
-            # Numerical columns
             'Tenure in Months': tenure,
             'Monthly Charge': monthly_charges,
             'Total Charges': total_charges,
             'Age': age,
-            # Categorical columns
             'Phone Service': phone_service,
             'Internet Service': internet_service,
             'Streaming': streaming,
@@ -191,7 +167,6 @@ elif app_mode == 'Customer Churn Prediction':
 
             # Use the default threshold for prediction
             churn_prediction = churn_prob[1] > default_threshold
-            risk_category = "High Risk" if churn_prediction else "Low Risk"
 
             # Center the prediction results
             st.markdown("<div style='text-align: center;'>", unsafe_allow_html=True)
@@ -224,3 +199,32 @@ elif app_mode == 'Customer Churn Prediction':
         except Exception as e:
             st.error(f"Error making prediction: {str(e)}")
             st.error("Please check the input data format and try again.")
+
+def main():
+    """Main function to run the Streamlit app."""
+    st.set_page_config(layout="wide", page_title="Customer Churn Analysis", page_icon="📊")
+
+    # Title and Sidebar Setup
+    st.markdown("<h1 style='text-align: center; color: #ff6347;'>Customer Churn Analysis </h1>",
+                unsafe_allow_html=True)
+    st.sidebar.title("Navigation")
+    app_mode = st.sidebar.radio("Select Step", ['Customer Churn Prediction', 'Geospatial Insights', 'View Dataset'])
+
+    # Load data
+    data = load_data()
+
+    # Handle different app modes
+    if app_mode == 'View Dataset':
+        display_dataset(data)
+    elif app_mode == 'Geospatial Insights':
+        display_geospatial_insights(data)
+    elif app_mode == 'Customer Churn Prediction':
+        try:
+            model, scaler, numerical_columns, categorical_columns = load_model()
+            predict_customer_churn(model, scaler, numerical_columns, categorical_columns, data)
+        except FileNotFoundError:
+            st.error("Please ensure the model and associated files have been trained and saved.")
+            st.stop()
+
+if __name__ == "__main__":
+    main()

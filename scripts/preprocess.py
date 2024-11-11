@@ -72,15 +72,7 @@ def merge_and_sample_datasets(dfs, target_total=3738):
 
 
 def clean_and_transform_data(df):
-
     try:
-        # Handle missing values
-        numerical_cols = df.select_dtypes(include=['float', 'int']).columns
-        categorical_cols = df.select_dtypes(include=['object']).columns
-
-        df[numerical_cols] = df[numerical_cols].fillna(df[numerical_cols].median())
-        df[categorical_cols] = df[categorical_cols].fillna('Unknown')
-
         # Set data types
         dtype_dict = {
             'Customer ID': 'object',
@@ -110,7 +102,6 @@ def clean_and_transform_data(df):
 
 
 def process_and_save_data(target_total=3738):
-    """Main function to process and save the data."""
     try:
         # Load datasets
         dfs = load_datasets()
