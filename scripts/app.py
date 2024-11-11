@@ -3,7 +3,6 @@ import pandas as pd
 import keplergl as kp
 from streamlit_keplergl import keplergl_static
 import joblib
-import plotly.graph_objects as go
 
 st.set_page_config(layout="wide", page_title="Customer Churn Analysis", page_icon="📊")
 
@@ -66,10 +65,12 @@ if app_mode == 'View Dataset':
         
     with col2:
         st.metric("Average Age", f"{data['Age'].mean():.1f} years")
+        
         gender_distribution = data['Gender'].value_counts().to_dict()
         gender_distribution_str = ', '.join([f"{key}: {value}" for key, value in gender_distribution.items()])
         st.metric("Gender Distribution", gender_distribution_str)
-        churn_rate_by_gender = data.groupby('Gender')['Churn Value'].mean() * 100  # Churn rate as a percentage
+        
+        churn_rate_by_gender = data.groupby('Gender', observed=False)['Churn Value'].mean() * 100 
         churn_rate_by_gender_str = ', '.join([f"{key}: {value:.2f}%" for key, value in churn_rate_by_gender.items()])
         st.metric("Churn Rate by Gender", churn_rate_by_gender_str)
 
@@ -200,6 +201,22 @@ elif app_mode == 'Customer Churn Prediction':
                 st.warning("Customer is likely to leave")
             else:
                 st.info("Customer is likely to stay")
+            st.markdown("</div>", unsafe_allow_html=True)
+
+            # Display key factors influencing the prediction
+            st.subheader("Key Factors")
+            factors = []
+            if tenure < 12:
+                factors.append("Short Tenure")
+            if internet_service == 'No':
+                factors.append("No Internet Service")
+            if monthly_charges > data['Monthly Charge'].mean():
+                factors.append("Above average monthly charges")
+            if factors:
+                st.warning("Risk Factors: " + ", ".join(factors))
+            else:
+                st.info("No significant risk factors identified")
+
             st.markdown("</div>", unsafe_allow_html=True)
 
         except ValueError as ve:
